@@ -1,0 +1,123 @@
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Новая задача</h3>
+      </div>
+      <div class="card-body">
+        <form action="/tasks" method="POST">
+          <div class="mb-3">
+            <label for="title" class="form-label">Название</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="dueDate" class="form-label">Срок выполнения</label>
+              <input type="text" id="dueDate" name="dueDate" class="form-control datepicker">
+            </div>
+            
+            <div class="col-md-6">
+              <label for="priority" class="form-label">Приоритет</label>
+              <select id="priority" name="priority" class="form-select">
+                <option value="Низкий">Низкий</option>
+                <option value="Средний" selected>Средний</option>
+                <option value="Высокий">Высокий</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="category" class="form-label">Категория</label>
+            <select id="category" name="category" class="form-select">
+              <option value="Общее" selected>Общее</option>
+              <option value="Работа">Работа</option>
+              <option value="Учеба">Учеба</option>
+              <option value="Личное">Личное</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="tags" class="form-label">Теги</label>
+            <div class="input-group">
+              <input type="text" id="tags" class="form-control" placeholder="Введите тег и нажмите Enter">
+            </div>
+            <div id="tags-container" class="mt-2"></div>
+            <input type="hidden" id="tags-hidden" name="tags" value="">
+            <small class="form-text text-muted">Введите тег и нажмите Enter для добавления</small>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="/tasks" class="btn btn-outline-secondary">Отмена</a>
+            <button type="submit" class="btn btn-primary">Создать задачу</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация календаря выбора даты
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd',
+    language: 'ru',
+    autoclose: true,
+    todayHighlight: true
+  });
+  
+  // Обработка тегов
+  const tagsInput = document.getElementById('tags');
+  if (tagsInput) {
+    tagsInput.addEventListener('keydown', function(e) {
+      if (e.key === ',' || e.key === 'Enter') {
+        e.preventDefault();
+        
+        const tagText = this.value.trim();
+        if (tagText) {
+          addTag(tagText);
+          this.value = '';
+        }
+      }
+    });
+    
+    function addTag(text) {
+      const tagsContainer = document.getElementById('tags-container');
+      const hiddenInput = document.getElementById('tags-hidden');
+      
+      const tagSpan = document.createElement('span');
+      tagSpan.className = 'tag badge bg-light text-dark me-2 mb-2';
+      tagSpan.innerHTML = `
+        ${text}
+        <button type="button" class="btn-close btn-close-sm ms-1" aria-label="Close"></button>
+      `;
+      
+      tagsContainer.appendChild(tagSpan);
+      
+      // Обновление скрытого поля
+      const currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
+      currentTags.push(text);
+      hiddenInput.value = currentTags.join(',');
+      
+      // Обработчик удаления тега
+      tagSpan.querySelector('.btn-close').addEventListener('click', function() {
+        const currentTags = hiddenInput.value.split(',');
+        const index = currentTags.indexOf(text);
+        
+        if (index !== -1) {
+          currentTags.splice(index, 1);
+          hiddenInput.value = currentTags.join(',');
+        }
+        
+        tagSpan.remove();
+      });
+    }
+  }
+});
+</script>

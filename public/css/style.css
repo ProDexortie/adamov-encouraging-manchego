@@ -1,0 +1,123 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.card-header {
+  border-top-left-radius: 0.5rem !important;
+  border-top-right-radius: 0.5rem !important;
+}
+
+.btn {
+  border-radius: 0.25rem;
+}
+
+/* Оформление приоритетов задач */
+.priority-high {
+  border-left: 4px solid #dc3545;
+}
+
+.priority-medium {
+  border-left: 4px solid #ffc107;
+}
+
+.priority-low {
+  border-left: 4px solid #17a2b8;
+}
+
+/* Оформление статусов */
+.status-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Стили для датапикера */
+.datepicker {
+  border-radius: 0.25rem;
+}
+
+/* Стили для прогресс-баров */
+.progress {
+  height: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Анимация при наведении на карточки */
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+/* Стили для кнопок действий */
+.action-buttons .btn {
+  margin-right: 0.25rem;
+}
+
+/* Стили для тегов */
+.tag {
+  background-color: #e9ecef;
+  border-radius: 1rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+  display: inline-block;
+}
+
+/* Стили для категорий */
+.category-badge {
+  background-color: #4e73df;
+  color: white;
+  border-radius: 1rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Оформление заголовков секций */
+.section-title {
+  border-bottom: 2px solid #4e73df;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Стили для списков */
+.list-group-item {
+  transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Стили для дат */
+.date-info {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Стили для иконок */
+.icon-action {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.icon-action:hover {
+  color: #4e73df;
+}

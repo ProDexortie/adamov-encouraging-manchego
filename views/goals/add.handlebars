@@ -1,0 +1,194 @@
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Новая цель</h3>
+      </div>
+      <div class="card-body">
+        <form action="/goals" method="POST">
+          <div class="mb-3">
+            <label for="title" class="form-label">Название</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="targetDate" class="form-label">Дата достижения</label>
+              <input type="text" id="targetDate" name="targetDate" class="form-control datepicker" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="category" class="form-label">Категория</label>
+              <select id="category" name="category" class="form-select">
+                <option value="Общее" selected>Общее</option>
+                <option value="Работа">Работа</option>
+                <option value="Учеба">Учеба</option>
+                <option value="Личное">Личное</option>
+                <option value="Здоровье">Здоровье</option>
+                <option value="Финансы">Финансы</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Подзадачи</label>
+            <div id="subtasks-container">
+              <div class="subtask-item input-group mb-2">
+                <input type="text" name="subTasks[]" class="form-control" placeholder="Название подзадачи">
+                <button type="button" class="btn btn-outline-danger remove-subtask">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <button type="button" id="add-subtask" class="btn btn-outline-primary btn-sm mt-2">
+              <i class="fas fa-plus"></i> Добавить подзадачу
+            </button>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="/goals" class="btn btn-outline-secondary">Отмена</a>
+            <button type="submit" class="btn btn-primary">Создать цель</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация календаря выбора даты
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd',
+    language: 'ru',
+    autoclose: true,
+    todayHighlight: true
+  });
+  
+  // Очистка старых обработчиков
+  const oldAddSubtaskBtn = document.getElementById('add-subtask');
+  if (oldAddSubtaskBtn) {
+    const newAddSubtaskBtn = oldAddSubtaskBtn.cloneNode(true);
+    oldAddSubtaskBtn.parentNode.replaceChild(newAddSubtaskBtn, oldAddSubtaskBtn);
+    
+    // Динамическое добавление полей для подзадач
+    newAddSubtaskBtn.addEventListener('click', function() {
+      const subtasksContainer = document.getElementById('subtasks-container');
+      
+      const subtaskDiv = document.createElement('div');
+      subtaskDiv.className = 'subtask-item input-group mb-2';
+      
+      // Для страницы edit используем чекбоксы, для add просто поля ввода
+      if (window.location.pathname.includes('/edit/')) {
+        subtaskDiv.innerHTML = `
+          <div class="input-group-text">
+            <input class="form-check-input subtask-checkbox" type="checkbox" name="completedSubTasks[]" value="${document.querySelectorAll('.subtask-item').length}">
+          </div>
+          <input type="text" name="subTasks[]" class="form-control" placeholder="Название подзадачи">
+          <button type="button" class="btn btn-outline-danger remove-subtask">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+      } else {
+        subtaskDiv.innerHTML = `
+          <input type="text" name="subTasks[]" class="form-control" placeholder="Название подзадачи">
+          <button type="button" class="btn btn-outline-danger remove-subtask">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+      }
+      
+      subtasksContainer.appendChild(subtaskDiv);
+      
+      // Обработчик удаления подзадачи
+      subtaskDiv.querySelector('.remove-subtask').addEventListener('click', function() {
+        subtaskDiv.remove();
+        // Обновляем индексы только на странице редактирования
+        if (window.location.pathname.includes('/edit/')) {
+          updateSubtaskIndexes();
+          updateProgress();
+        }
+      });
+      
+      // Добавляем обработчик для чекбокса только на странице редактирования
+      if (window.location.pathname.includes('/edit/')) {
+        const checkbox = subtaskDiv.querySelector('.subtask-checkbox');
+        if (checkbox) {
+          checkbox.addEventListener('change', updateProgress);
+        }
+      }
+    });
+  }
+  
+  // Обработчики удаления существующих подзадач
+  document.querySelectorAll('.remove-subtask').forEach(button => {
+    // Очистка старых обработчиков
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    newButton.addEventListener('click', function() {
+      this.closest('.subtask-item').remove();
+      // Обновляем индексы только на странице редактирования
+      if (window.location.pathname.includes('/edit/')) {
+        updateSubtaskIndexes();
+        updateProgress();
+      }
+    });
+  });
+  
+  // Функции для страницы редактирования
+  if (window.location.pathname.includes('/edit/')) {
+    // Обновление индексов подзадач после удаления
+    function updateSubtaskIndexes() {
+      document.querySelectorAll('.subtask-item').forEach((item, index) => {
+        const checkbox = item.querySelector('.subtask-checkbox');
+        if (checkbox) {
+          checkbox.value = index;
+        }
+      });
+    }
+    
+    // Обновление прогресса цели на основе завершенных подзадач
+    const subtaskCheckboxes = document.querySelectorAll('.subtask-checkbox');
+    const progressInput = document.getElementById('progress');
+    
+    if (subtaskCheckboxes.length > 0 && progressInput) {
+      // Очищаем старые обработчики
+      subtaskCheckboxes.forEach(checkbox => {
+        const newCheckbox = checkbox.cloneNode(true);
+        checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+        newCheckbox.addEventListener('change', updateProgress);
+      });
+    }
+    
+    function updateProgress() {
+      const total = document.querySelectorAll('.subtask-item').length;
+      if (total === 0) return;
+      
+      const completed = document.querySelectorAll('.subtask-checkbox:checked').length;
+      const progress = Math.round((completed / total) * 100);
+      
+      progressInput.value = progress;
+      document.getElementById('progress-display').textContent = progress + '%';
+      document.querySelector('.progress-bar').style.width = progress + '%';
+    }
+    
+    // Обработчик изменения прогресса вручную
+    if (progressInput) {
+      // Очищаем старые обработчики
+      const newProgressInput = progressInput.cloneNode(true);
+      progressInput.parentNode.replaceChild(newProgressInput, progressInput);
+      
+      newProgressInput.addEventListener('input', function() {
+        document.getElementById('progress-display').textContent = this.value + '%';
+        document.querySelector('.progress-bar').style.width = this.value + '%';
+      });
+    }
+  }
+});
+</script>
