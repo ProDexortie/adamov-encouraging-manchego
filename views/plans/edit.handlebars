@@ -1,0 +1,113 @@
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Редактирование плана</h3>
+      </div>
+      <div class="card-body">
+        <form action="/plans/update/{{plan._id}}" method="POST">
+          <div class="mb-3">
+            <label for="date" class="form-label">Дата</label>
+            <input type="text" id="date" name="date" class="form-control datepicker" value="{{formatDate plan.date 'YYYY-MM-DD'}}" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="notes" class="form-label">Заметки</label>
+            <textarea id="notes" name="notes" class="form-control" rows="3">{{plan.notes}}</textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Пункты плана</label>
+            <div id="plan-items-container">
+              {{#each plan.items}}
+                <div class="plan-item mb-2">
+                  <div class="input-group">
+                    <div class="input-group-text">
+                      <input class="form-check-input" type="checkbox" name="completed[]" value="{{@index}}" {{#if completed}}checked{{/if}}>
+                    </div>
+                    <input type="text" name="items[]" class="form-control" value="{{title}}" required>
+                    <input type="time" name="times[]" class="form-control" value="{{time}}">
+                    <button type="button" class="btn btn-outline-danger remove-plan-item">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+            <button type="button" id="add-plan-item" class="btn btn-outline-primary btn-sm mt-2">
+              <i class="fas fa-plus"></i> Добавить пункт
+            </button>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="/plans" class="btn btn-outline-secondary">Отмена</a>
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация календаря выбора даты
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd',
+    language: 'ru',
+    autoclose: true,
+    todayHighlight: true
+  });
+  
+  // Динамическое добавление полей для пунктов плана
+  const addPlanItemBtn = document.getElementById('add-plan-item');
+  if (addPlanItemBtn) {
+    addPlanItemBtn.addEventListener('click', function() {
+      const itemsContainer = document.getElementById('plan-items-container');
+      const itemIndex = document.querySelectorAll('.plan-item').length;
+      
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'plan-item mb-2';
+      
+      itemDiv.innerHTML = `
+        <div class="input-group">
+          <div class="input-group-text">
+            <input class="form-check-input" type="checkbox" name="completed[]" value="${itemIndex}">
+          </div>
+          <input type="text" name="items[]" class="form-control" placeholder="Название пункта плана">
+          <input type="time" name="times[]" class="form-control">
+          <button type="button" class="btn btn-outline-danger remove-plan-item">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      itemsContainer.appendChild(itemDiv);
+      
+      // Обработчик удаления пункта плана
+      itemDiv.querySelector('.remove-plan-item').addEventListener('click', function() {
+        itemDiv.remove();
+        updateItemIndexes();
+      });
+    });
+  }
+  
+  // Обработчики удаления существующих пунктов плана
+  document.querySelectorAll('.remove-plan-item').forEach(button => {
+    button.addEventListener('click', function() {
+      this.closest('.plan-item').remove();
+      updateItemIndexes();
+    });
+  });
+  
+  // Обновление индексов пунктов плана после удаления
+  function updateItemIndexes() {
+    document.querySelectorAll('.plan-item').forEach((item, index) => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        checkbox.value = index;
+      }
+    });
+  }
+});
+</script>

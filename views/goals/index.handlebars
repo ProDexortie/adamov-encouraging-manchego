@@ -1,0 +1,75 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Мои цели</h1>
+  <a href="/goals/add" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Новая цель
+  </a>
+</div>
+
+{{#if goals}}
+  <div class="row">
+    {{#each goals}}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">{{title}}</h5>
+            <span class="badge {{#if (eq status 'Завершена')}}bg-success{{else if (eq status 'В процессе')}}bg-info{{else}}bg-secondary{{/if}}">
+              {{status}}
+            </span>
+          </div>
+          <div class="card-body">
+            {{#if description}}
+              <p>{{description}}</p>
+            {{/if}}
+            
+            <div class="mb-3">
+              <label class="form-label">Прогресс: {{progress}}%</label>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {{progress}}%" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            
+            {{#if targetDate}}
+              <p class="small text-muted">
+                <i class="fas fa-calendar"></i> Цель до: {{formatDate targetDate "DD.MM.YYYY"}}
+              </p>
+            {{/if}}
+            
+            {{#if subTasks.length}}
+              <h6>Подзадачи:</h6>
+              <ul class="list-group mb-3">
+                {{#each subTasks}}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{#if completed}}
+                      <span class="text-decoration-line-through">{{title}}</span>
+                      <i class="fas fa-check text-success"></i>
+                    {{else}}
+                      {{title}}
+                    {{/if}}
+                  </li>
+                {{/each}}
+              </ul>
+            {{/if}}
+            
+            <div class="d-flex justify-content-between mt-3">
+              <a href="/goals/edit/{{_id}}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Редактировать
+              </a>
+              <form action="/goals/delete/{{_id}}" method="POST">
+                <button type="submit" class="btn btn-outline-danger">
+                  <i class="fas fa-trash"></i> Удалить
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="card">
+    <div class="card-body text-center">
+      <p>У вас пока нет целей</p>
+      <a href="/goals/add" class="btn btn-primary">Добавить первую цель</a>
+    </div>
+  </div>
+{{/if}}

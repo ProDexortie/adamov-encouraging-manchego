@@ -1,0 +1,172 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Мои планы</h1>
+  <a href="/plans/add" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Новый план
+  </a>
+</div>
+
+<!-- Календарь планов -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">Календарь планов</h5>
+  </div>
+  <div class="card-body">
+    <div id="plans-calendar"></div>
+  </div>
+</div>
+
+<!-- Список планов -->
+{{#if plans}}
+  <div class="row">
+    {{#each plans}}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{{formatDate date "DD.MM.YYYY"}} ({{dayOfWeek date}})</h5>
+          </div>
+          <div class="card-body">
+            {{#if items.length}}
+              <ul class="list-group mb-3">
+                {{#each items}}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      {{#if completed}}
+                        <span class="text-decoration-line-through">{{title}}</span>
+                      {{else}}
+                        {{title}}
+                      {{/if}}
+                      
+                      {{#if time}}
+                        <small class="text-muted ms-2">{{time}}</small>
+                      {{/if}}
+                    </div>
+                    
+                    <div>
+                      <form action="/plans/item/{{../_id}}/{{@index}}" method="POST" class="d-inline">
+                        {{#if completed}}
+                          <input type="hidden" name="completed" value="false">
+                          <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-undo"></i>
+                          </button>
+                        {{else}}
+                          <input type="hidden" name="completed" value="true">
+                          <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-check"></i>
+                          </button>
+                        {{/if}}
+                      </form>
+                    </div>
+                  </li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="text-center">Нет пунктов в плане</p>
+            {{/if}}
+            
+            {{#if notes}}
+              <div class="mt-3">
+                <h6>Заметки:</h6>
+                <p>{{notes}}</p>
+              </div>
+            {{/if}}
+            
+            <div class="d-flex justify-content-between mt-3">
+              <a href="/plans/edit/{{_id}}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Редактировать
+              </a>
+              <form action="/plans/delete/{{_id}}" method="POST">
+                <button type="submit" class="btn btn-outline-danger">
+                  <i class="fas fa-trash"></i> Удалить
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="card">
+    <div class="card-body text-center">
+      <p>У вас пока нет планов</p>
+      <a href="/plans/add" class="btn btn-primary">Создать первый план</a>
+    </div>
+  </div>
+{{/if}}
+
+<script>
+  // Данные для календаря
+  window.planDates = [
+    {{#each plans}}
+      "{{formatDate date "YYYY-MM-DD"}}"{{#unless @last}},{{/unless}}
+    {{/each}}
+  ];
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('plans-calendar');
+    if (calendarEl && window.planDates) {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const lastDay = new Date(currentYear, currentMonth + 1, 0);
+      
+      let calendarHTML = '<table class="table table-bordered text-center">';
+      calendarHTML += '<thead><tr>';
+      
+      const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      weekdays.forEach(day => {
+        calendarHTML += `<th>${day}</th>`;
+      });
+      
+      calendarHTML += '</tr></thead><tbody><tr>';
+      
+      // Заполнение пустых ячеек в начале
+      const firstDayOfWeek = firstDay.getDay() || 7; // Воскресенье - 0, переводим в 7
+      for (let i = 1; i < firstDayOfWeek; i++) {
+        calendarHTML += '<td></td>';
+      }
+      
+      // Заполнение дней месяца
+      let currentDay = 1;
+      let dayOfWeek = firstDayOfWeek;
+      
+      while (currentDay <= lastDay.getDate()) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+        const hasPlan = window.planDates.includes(dateStr);
+        
+        const isToday = currentDay === currentDate.getDate();
+        
+        calendarHTML += `<td class="${isToday ? 'bg-light' : ''} ${hasPlan ? 'text-primary fw-bold' : ''}">`;
+        
+        if (hasPlan) {
+          calendarHTML += `<a href="/plans/date/${dateStr}">${currentDay}</a>`;
+        } else {
+          calendarHTML += currentDay;
+        }
+        
+        calendarHTML += '</td>';
+        
+        if (dayOfWeek === 7) {
+          calendarHTML += '</tr><tr>';
+          dayOfWeek = 1;
+        } else {
+          dayOfWeek++;
+        }
+        
+        currentDay++;
+      }
+      
+      // Заполнение пустых ячеек в конце
+      while (dayOfWeek <= 7 && dayOfWeek > 1) {
+        calendarHTML += '<td></td>';
+        dayOfWeek++;
+      }
+      
+      calendarHTML += '</tr></tbody></table>';
+      
+      calendarEl.innerHTML = calendarHTML;
+    }
+  });
+</script>

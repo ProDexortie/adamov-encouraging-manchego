@@ -1,0 +1,142 @@
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Редактирование задачи</h3>
+      </div>
+      <div class="card-body">
+        <form action="/tasks/{{task._id}}?_method=PUT" method="POST">
+          <div class="mb-3">
+            <label for="title" class="form-label">Название</label>
+            <input type="text" id="title" name="title" class="form-control" value="{{task.title}}" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" name="description" class="form-control" rows="3">{{task.description}}</textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="dueDate" class="form-label">Срок выполнения</label>
+              <input type="text" id="dueDate" name="dueDate" class="form-control datepicker" value="{{formatDate task.dueDate 'YYYY-MM-DD'}}">
+            </div>
+            
+            <div class="col-md-4">
+              <label for="priority" class="form-label">Приоритет</label>
+              <select id="priority" name="priority" class="form-select">
+                <option value="Низкий" {{#if (eq task.priority "Низкий")}}selected{{/if}}>Низкий</option>
+                <option value="Средний" {{#if (eq task.priority "Средний")}}selected{{/if}}>Средний</option>
+                <option value="Высокий" {{#if (eq task.priority "Высокий")}}selected{{/if}}>Высокий</option>
+              </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="status" class="form-label">Статус</label>
+              <select id="status" name="status" class="form-select">
+                <option value="Новая" {{#if (eq task.status "Новая")}}selected{{/if}}>Новая</option>
+                <option value="В процессе" {{#if (eq task.status "В процессе")}}selected{{/if}}>В процессе</option>
+                <option value="Завершена" {{#if (eq task.status "Завершена")}}selected{{/if}}>Завершена</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="category" class="form-label">Категория</label>
+            <select id="category" name="category" class="form-select">
+              <option value="Общее" {{#if (eq task.category "Общее")}}selected{{/if}}>Общее</option>
+              <option value="Работа" {{#if (eq task.category "Работа")}}selected{{/if}}>Работа</option>
+              <option value="Учеба" {{#if (eq task.category "Учеба")}}selected{{/if}}>Учеба</option>
+              <option value="Личное" {{#if (eq task.category "Личное")}}selected{{/if}}>Личное</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="tags" class="form-label">Теги</label>
+            <div class="input-group">
+              <input type="text" id="tags" class="form-control" placeholder="Введите тег и нажмите Enter">
+            </div>
+            <div id="tags-container" class="mt-2"></div>
+            <input type="hidden" id="tags-hidden" name="tags" value="{{task.tags}}">
+            <small class="form-text text-muted">Введите тег и нажмите Enter для добавления</small>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="/tasks" class="btn btn-outline-secondary">Отмена</a>
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация календаря выбора даты
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd',
+    language: 'ru',
+    autoclose: true,
+    todayHighlight: true
+  });
+  
+  // Обработка тегов
+  const tagsInput = document.getElementById('tags');
+  const tagsContainer = document.getElementById('tags-container');
+  const hiddenInput = document.getElementById('tags-hidden');
+  
+  if (tagsInput) {
+    // Инициализация существующих тегов
+    const existingTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
+    existingTags.forEach(tag => {
+      if (tag.trim()) {
+        addTag(tag.trim());
+      }
+    });
+    
+    tagsInput.addEventListener('keydown', function(e) {
+      if (e.key === ',' || e.key === 'Enter') {
+        e.preventDefault();
+        
+        const tagText = this.value.trim();
+        if (tagText) {
+          addTag(tagText);
+          this.value = '';
+        }
+      }
+    });
+    
+    function addTag(text) {
+      const tagSpan = document.createElement('span');
+      tagSpan.className = 'tag badge bg-light text-dark me-2 mb-2';
+      tagSpan.innerHTML = `
+        ${text}
+        <button type="button" class="btn-close btn-close-sm ms-1" aria-label="Close"></button>
+      `;
+      
+      tagsContainer.appendChild(tagSpan);
+      
+      // Обновление скрытого поля при добавлении
+      updateHiddenInput();
+      
+      // Обработчик удаления тега
+      tagSpan.querySelector('.btn-close').addEventListener('click', function() {
+        tagSpan.remove();
+        updateHiddenInput();
+      });
+    }
+    
+    function updateHiddenInput() {
+      const tags = [];
+      document.querySelectorAll('#tags-container .tag').forEach(tag => {
+        const tagText = tag.innerText.trim();
+        if (tagText) {
+          tags.push(tagText);
+        }
+      });
+      hiddenInput.value = tags.join(',');
+    }
+  }
+});
+</script>
